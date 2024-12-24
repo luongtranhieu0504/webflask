@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Đoán Bóng Đá</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #007BFF;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 45%; /* Chiếm 45% màn hình */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .team-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .team {
+            flex: 1;
+            text-align: center;
+        }
+
+        .team img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+
+        .team h3 {
+            font-size: 1em;
+            margin: 5px 0;
+        }
+
+        .match-date {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .prediction {
+            margin-top: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Dự Đoán Bóng Đá - Trận Đấu Sắp Diễn Ra</h1>
+    <div class="container" id="matches-container">
+        <!-- Các card trận đấu sẽ được hiển thị ở đây -->
+    </div>
+
+    <script>
+        const container = document.getElementById("matches-container");
+
+        // Gọi API backend Flask để lấy các trận đấu và kết quả dự đoán
+        async function fetchMatches() {
+            try {
+                const response = await fetch("/predict");
+                const data = await response.json();
+
+                if (data.upcoming_matches) {
+                    displayMatches(data.upcoming_matches);
+                } else {
+                    container.innerHTML = "<p>Không có trận đấu nào sắp diễn ra.</p>";
+                }
+            } catch (error) {
+                console.error("Error fetching matches:", error);
+                container.innerHTML = "<p>Có lỗi xảy ra khi lấy dữ liệu trận đấu.</p>";
+            }
+        }
+
+        // Hiển thị các trận đấu trong thẻ card
+        function displayMatches(matches) {
+            matches.forEach(match => {
+                const card = document.createElement("div");
+                card.className = "card";
+
+                const homeLogo = match.home_team_logo || "https://via.placeholder.com/80";
+                const awayLogo = match.away_team_logo || "https://via.placeholder.com/80";
+
+                card.innerHTML = `
+                    <div class="team-info">
+                        <div class="team">
+                            <img src="${homeLogo}" alt="Logo đội nhà">
+                            <h3>${match.home_team}</h3>
+                        </div>
+                        <div class="team">
+                            <img src="${awayLogo}" alt="Logo đội khách">
+                            <h3>${match.away_team}</h3>
+                        </div>
+                    </div>
+                    <div class="match-date">
+                        Ngày giờ: ${new Date(match.utc_date).toLocaleString()}
+                    </div>
+                    <div class="prediction">
+                        <p style="font-size: 0.9em; font-weight: bold;">${match.prediction.team_win}</p>
+                        <p style="font-size: 0.9em; font-weight: bold;">${match.prediction.draw}</p>
+                        <p style="font-size: 0.9em; font-weight: bold;">${match.prediction.opponent_win}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Gọi hàm khi trang được load
+        fetchMatches();
+    </script>
+</body>
+</html>
